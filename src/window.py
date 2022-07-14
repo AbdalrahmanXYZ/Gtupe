@@ -102,7 +102,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
     def UpdateDownloads():
         waiting = self.db.execute("SELECT * FROM Downloads")
-        i = 0
+        i = 1
         for row in waiting:
             if row not in self.downloading:
                 self.downloading.append(row)
