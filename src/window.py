@@ -406,4 +406,3 @@ class AboutDialog(Gtk.AboutDialog):
         self.props.logo_icon_name = 'com.github.azab.gtupe'
         self.props.modal = True
         self.set_transient_for(parent)
-
