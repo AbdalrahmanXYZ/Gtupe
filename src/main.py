@@ -63,10 +63,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
     SuggestionCheck = Gtk.Template.Child()
     Error_Label = Gtk.Template.Child()
     LoadingProgressBar = Gtk.Template.Child()
-    Downloads = {"URL" : [], "Row" : [], "MainBox" : [], "MainIcon" : [],
-                 "InnerBox1" : [], "InnerBox2" : [], "InnerBox3" : [],
-                 "Title" : [], "Subtitle" : [], "ButtonBox" : [], "Stop" : [],
-                 "Pause" : [], "ProgressBar" : [], "IsPaused" : [], "isCanceled" : []}
+    Downloads_List = Gtk.Template.Child()
     VidRequest = 0
     ListRequest = 0
 
@@ -74,9 +71,20 @@ class GtupeWindow(Gtk.ApplicationWindow):
         super().__init__(**kwargs)
         global DefaultLocFileDir
         global DefaultLocPATH
+        global cache_dir
+        cache_dir = GLib.get_user_cache_dir()
         self.MainBuffer.connect("inserted_text", self.islistq)
         self.MainBuffer.connect("deleted_text", self.islistq)
+        self.Download_Rows = {}
         DefaultLocFileDir = GLib.get_user_cache_dir() + "/tmp/DefaultDownloadLoc"
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
+        db = conn.cursor()
+        db.execute('''
+          CREATE TABLE IF NOT EXISTS Downloads
+          ([url] TEXT, [res] TEXT, [type] TEXT, [location] TEXT, [added_on] TEXT, [size] TEXT, [name] TEXT, [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)
+          ''')
+        conn.commit()
+        conn.close()
         try:
             with open(DefaultLocFileDir, 'r') as f:
                 DefaultLocPATH = f.read()
@@ -89,6 +97,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
                 f.write(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DOWNLOAD))
                 DefaultLocPATH = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DOWNLOAD)
                 f.close()
+        threading.Thread(target = self.UpdateDownloads, daemon = True).start()
 
 
 
@@ -112,103 +121,46 @@ class GtupeWindow(Gtk.ApplicationWindow):
             return str(round(double_bytes, 2)) + " " + tags[i]
 
     def AddToTasksDB(self, url, res, dtype, size, name):
-        self.cache_dir = GLib.get_user_cache_dir()
+        cache_dir = GLib.get_user_cache_dir()
         fsize = self.size_format(size)
         dt = d.datetime.now().strftime("%d/%m/%Y %H:%M")
-        conn = sqlite3.connect(self.cache_dir + '/tmp/GtupeData.db')
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
         self.db = conn.cursor()
         self.db.execute('''
           CREATE TABLE IF NOT EXISTS Downloads
-          ([url] TEXT, [res] TEXT, [type] TEXT, [location] TEXT, [added_on] TEXT, [size] TEXT, [name] TEXT)
+          ([url] TEXT, [res] TEXT, [type] TEXT, [location] TEXT, [added_on] TEXT, [size] TEXT, [name] TEXT, [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)
           ''')
         print(res)
         self.db.execute("INSERT INTO Downloads (url, res, type, location, added_on, size, name) VALUES (?, ?, ?, ?, ?, ?, ?)", (url, str(res), dtype, GtupeApplication.Update_Download_Path(GtupeApplication), dt, fsize, name))
         conn.commit()
         conn.close()
         threading.Thread(target = self.UpdateDownloads, daemon = True).start()
+
+
+
     #def Download_handler(self, IsPaused, IsCanceled, PBar, Url, Res, Type, Loc):
 
 
 
     def UpdateDownloads(self, *args):
-        conn = sqlite3.connect(self.cache_dir + '/tmp/GtupeData.db')
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
         self.db = conn.cursor()
         queue = self.db.execute("SELECT * FROM Downloads")
-        #if len(queue) == 1:
-            #return
         for video in queue:
             print(video)
-            if video[0] not in self.Downloads["URL"]:
-                # creating row widgets
-                curr = len(self.Downloads["URL"])
-                print(curr)
-                # setting row and url value
-                self.Downloads["URL"].append(video[0])
-                self.Downloads["Row"].append(Adw.ActionRow.new())
-                self.Downloads["IsPaused"].append(False)
-                #self.Downloads["IsCanceled"].append(False)
-                # setting MainBox Defaults
-                self.Downloads["MainBox"].append(Gtk.Box)
-                self.Downloads["MainBox"][curr].set_hexpand(True)
-                self.Downloads["MainBox"][curr].set_margin_bottom(10)
-                self.Downloads["MainBox"][curr].set_margin_start(10)
-                self.Downloads["MainBox"][curr].set_margin_end(10)
-                self.Downloads["MainBox"][curr].set_margin_top(10)
-                # setting MainIcon Defaults
-                if video[2] == "Video":
-                    self.Downloads["MainIcon"].append(Gtk.Image.new_from_icon_name("video-x-generic-symbolic"))
-                else:
-                    self.Downloads["MainIcon"].append(Gtk.Image.new_from_icon_name("audio-x-generic-symbolic"))
-                self.Downloads["MainIcon"][curr].set_margin_end(10)
-                self.Downloads["MainIcon"][curr].set_pixel_size(50)
-                # setting InnerBox1
-                self.Downloads["InnerBox1"].append(Gtk.Box.new(orientation = "vertical", spacing = 10))
-                self.Downloads["InnerBox1"][curr].set_hexpand(True)
-                # setting InnerBox1
-                self.Downloads["InnerBox2"].append(Gtk.Box)
-                self.Downloads["InnerBox2"][curr].set_hexpand(True)
-                # setting InnerBox1
-                self.Downloads["InnerBox3"].append(Gtk.Box.new(orientation = "vertical", spacing = 0))
-                self.Downloads["InnerBox3"][curr].set_hexpand(True)
-                # setting Title
-                self.Downloads["Title"].append(Gtk.Label.new(video[6]))
-                self.Downloads["Title"][curr].set_ellipsize(3)
-                self.Downloads["Title"][curr].set_max_width_chars(25)
-                self.Downloads["Title"][curr].set_xalign(0)
-                self.Downloads["Title"][curr].add_css_class("heading")
-                # setting Subtitle
-                self.Downloads["Subtitle"].append(Gtk.Label.new(video[4] + "  " + video[1] + "  " + video[5]))
-                self.Downloads["Subtitle"][curr].set_ellipsize(3)
-                self.Downloads["Subtitle"][curr].set_max_width_chars(25)
-                self.Downloads["Subtitle"][curr].set_xalign(0)
-                self.Downloads["Subtitle"][curr].set_sensitive(False)
-                # setting Buttons
-                self.Downloads["ButtonBox"].append(Gtk.Box.new(orientation = "vertical", spacing = 10))
-                self.Downloads["Stop"].append(Gtk.Button.new_from_icon_name("media-playback-stop-symbolic"))
-                self.Downloads["Stop"][curr].add_css_class("destructive-action")
-                self.Downloads["Pause"].append(Gtk.Button.new_from_icon_name("media-playback-start-symbolic"))
-                self.Downloads["Pause"][curr].add_css_class("accent")
-                # setting ProgressBar
-                self.Downloads["ProgressBar"].append(Gtk.ProgressBar.new())
-                # structuring them
-                self.Downloads["Row"][curr].set_child(self.Downloads["MainBox"][curr])
-                self.Downloads["MainBox"][curr].append(self.Downloads["MainIcon"][curr])
-                self.Downloads["MainBox"][curr].append(self.Downloads["InnerBox1"])
-                self.Downloads["InnerBox1"][curr].append(self.Downloads["InnerBox2"])
-                self.Downloads["InnerBox1"][curr].append(self.Downloads["ProgressBar"])
-                self.Downloads["InnerBox2"][curr].append(self.Downloads["InnerBox3"])
-                self.Downloads["InnerBox2"][curr].append(self.Downloads["ButtonBox"])
-                self.Downloads["InnerBox3"][curr].append(self.Downloads["Title"])
-                self.Downloads["InnerBox3"][curr].append(self.Downloads["Subtitle"])
+            print(video[7])
+            print(list(self.Download_Rows.keys()))
+            if str(video[7]) not in list(self.Download_Rows.keys()):
+                print("Adding To Downloads List : " + video[6])
+                self.Download_Rows[str(video[7])] = DownloadsRow(video[0], video[1], video[2], video[3], video[4], video[5], video[6], video[7])
+                self.Downloads_List.add(self.Download_Rows[str(video[7])])
+
         conn.close()
 
 
     #def UpdateHistory():
 
     def Video_Data(self, *args):
-        global VidURL
-        global VidName
-
         if self.connect_func() == False:
                 return
         try:
@@ -220,7 +172,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.link = self.MainBuffer.get_text()
             self.vid = pytube.YouTube(self.link)
             self.VidDetails.set_title(html.escape(self.vid.title))
-            VidName = self.vid.title
+            self.VidName = self.vid.title
             self.VidDetails.set_description(f"Channel: {html.escape(self.vid.author)}  Length: " + f"{self.time_format(self.vid.length)}" + "   Views: " + f"{self.vid.views:,}")
             # setting combo boxes data
             self.SizesA = []
@@ -228,13 +180,13 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.ResV = []
             self.ResA = []
             for stream in self.vid.streams.filter(progressive = True):
-                self.VidVidRes.append([f'{stream.resolution}'])
-                self.ResV.append([f'{stream.resolution}'])
+                self.VidVidRes.append([f"{stream.resolution}"])
+                self.ResV.append([f"{stream.resolution}"])
                 self.SizesV.append(stream.filesize)
                 print(stream.resolution)
             for stream in self.vid.streams.filter(only_audio = True):
-                self.VidAuidRes.append([f'{round(stream.bitrate/1000)}kbps'])
-                self.ResA.append([f'{stream.bitrate}'])
+                self.VidAuidRes.append([f"{round(stream.bitrate/1000)}kbps"])
+                self.ResA.append([f"{round(stream.bitrate/1000)}kbps"])
                 self.SizesA.append(stream.filesize)
                 print(stream.bitrate)
             self.VidTypeList.append(['Video'])
@@ -260,8 +212,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.loading_revealer.set_reveal_child(False)
             self.vid_revealer.set_reveal_child(True)
             self.Carousel.scroll_to(self.vid_revealer, True)
-            VidURL = self.link
-
+            self.VidURL = self.link
             return
         except Exception as err:
             if err:
@@ -286,6 +237,8 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.l = len(self.plist.videos)
             rows = [0]*self.l
             check = [0]*self.l
+            self.LResV = []
+            self.LResA = []
             print("rows done")
             for video in self.plist.videos:
                 # card box
@@ -308,10 +261,12 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.ListNameLabel.set_label(self.plist.title)
             # setting combo boxes data
             for stream in self.plist.videos[0].streams.filter(progressive = True):
-                self.ListVidRes.append([f'{stream.resolution}'])
+                self.ListVidRes.append([f"{stream.resolution}"])
+                self.LResV.append([f"{stream.resolution}"])
                 print(stream.resolution)
             for stream in self.plist.videos[0].streams.filter(only_audio = True):
-                self.ListAuidRes.append([f'{round(stream.bitrate/1000)}kbps'])
+                self.ListAuidRes.append([f"{round(stream.bitrate/1000)}kbps"])
+                self.LResA.append([f"{round(stream.bitrate/1000)}kbps"])
                 print(stream.bitrate)
             self.ListTypeList.append(['Video'])
             self.ListTypeList.append(['Audio'])
@@ -501,10 +456,12 @@ class GtupeWindow(Gtk.ApplicationWindow):
     def On_Vid_Download(self, button):
         threading.Thread(target = self.On_Vid_DownloadFunc(button), daemon = True).start()
 
+    @Gtk.Template.Callback()
+    def On_List_Download(self, button):
+        threading.Thread(target = self.On_List_DownloadFunc(button), daemon = True).start()
+
+
     def On_Vid_DownloadFunc(self, button):
-        global VidRes
-        global VidType
-        global VidSize
         print("???1")
         if self.VidTypeBox.get_active() == 0:
             VidRes = self.ResV[self.VidResBox.get_active()]
@@ -515,8 +472,96 @@ class GtupeWindow(Gtk.ApplicationWindow):
             VidType = "Audio"
             VidSize = self.SizesA[self.VidResBox.get_active()]
         print("???2")
-        self.AddToTasksDB(VidURL, VidRes, VidType, VidSize, VidName)
+        self.AddToTasksDB(self.VidURL, VidRes, VidType, VidSize, self.VidName)
         print("???3")
+
+    # TODO: Make List Download Func which should itirate over every row to check wheather its
+    #       selected then colecting requered data to call AddToTasks
+    def On_List_DownloadFunc(self, button):
+        print("???1")
+        if self.ListTypeBox.get_active() == 0:
+            ListRes = self.ResV[self.ListResBox.get_active()]
+            ListType = "Video"
+            ListSize = self.SizesV[self.ListResBox.get_active()]
+        else:
+            ListRes = self.ResA[self.ListResBox.get_active()]
+            ListType = "Audio"
+            ListSize = self.SizesA[self.ListResBox.get_active()]
+        print("???2")
+        self.AddToTasksDB(self.ListURL, ListRes, ListType, ListSize, self.ListName)
+        print("???3")
+
+
+
+class DownloadsRow(Adw.ActionRow):
+    def __init__(self, DURL, DRes , DType, DLoc, DAddedOn, DSize, DName, DID):
+        super().__init__()
+        # setting The MainBox
+        self.URL = DURL
+        self.ID = DID
+        #self.set_hexpand(True)
+        self.MainBox = Gtk.Box()
+        self.MainBox.set_hexpand(True)
+        self.MainBox.set_margin_bottom(20)
+        self.MainBox.set_margin_start(20)
+        self.MainBox.set_margin_end(20)
+        self.MainBox.set_margin_top(20)
+        # setting MainIcon Defaults
+        if DType == "Video":
+            self.MainIcon = Gtk.Image.new_from_icon_name("video-x-generic-symbolic")
+        else:
+            self.MainIcon = Gtk.Image.new_from_icon_name("audio-x-generic-symbolic")
+        self.MainIcon.set_margin_end(20)
+        self.MainIcon.set_pixel_size(50)
+        # setting InnerBox1
+        self.InnerBox1 = Gtk.Box.new(orientation = 1, spacing = 10)
+        self.InnerBox1.set_hexpand(True)
+        # setting InnerBox1
+        self.InnerBox2 = Gtk.Box()
+        self.InnerBox2.set_hexpand(True)
+        # setting InnerBox1
+        self.InnerBox3 = Gtk.Box.new(orientation = 1, spacing = 0)
+        self.InnerBox3.set_hexpand(True)
+        # setting Title
+        self.Title = Gtk.Label.new(DName)
+        self.Title.set_ellipsize(3)
+        self.Title.set_max_width_chars(25)
+        self.Title.set_xalign(0)
+        self.Title.add_css_class("heading")
+        # setting Subtitle
+        if DType == "Video":
+            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Resouloution : " + DRes[2:-2] + "   " + DSize)
+        else:
+            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Bitrate : " + DRes[2:-2] + "Kbps" + "   Size : " + DSize)
+        self.Subtitle.set_ellipsize(3)
+        self.Subtitle.set_max_width_chars(25)
+        self.Subtitle.set_xalign(0)
+        self.Subtitle.set_sensitive(False)
+        self.Subtitle.set_margin_top(3)
+        # setting Buttons
+        self.ButtonBox = Gtk.Box.new(orientation = 0, spacing = 10)
+        self.Stop = Gtk.Button.new_from_icon_name("media-playback-stop-symbolic")
+        self.Stop.add_css_class("destructive-action")
+        self.Pause = Gtk.Button.new_from_icon_name("media-playback-start-symbolic")
+        self.Pause.add_css_class("accent")
+        self.ButtonBox.append(self.Stop)
+        self.ButtonBox.append(self.Pause)
+        # setting ProgressBar
+        self.ProgressBar = Gtk.ProgressBar.new()
+
+        # structuring them
+        self.MainBox.append(self.MainIcon)
+        self.MainBox.append(self.InnerBox1)
+        self.InnerBox1.append(self.InnerBox2)
+        self.InnerBox1.append(self.ProgressBar)
+        self.InnerBox2.append(self.InnerBox3)
+        self.InnerBox2.append(self.ButtonBox)
+        self.InnerBox3.append(self.Title)
+        self.InnerBox3.append(self.Subtitle)
+        self.set_child(self.MainBox)
+
+    def AddHandler(self, *args):
+        return
 
 
 

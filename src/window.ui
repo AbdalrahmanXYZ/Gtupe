@@ -418,29 +418,44 @@
                   <property name="title">Task Manager</property>
                   <property name="icon-name">edit-paste-symbolic</property>
                   <property name="child">
-                    <object class="AdwClamp">
-                       <property name="maximum-size">500</property>
+                    <object class="AdwCarousel">
+                      <property name="vexpand">True</property>
+                      <property name="hexpand">True</property>
+                      <property name="interactive">True</property>
+                      <property name="spacing">100</property>
                       <child>
-                        <object class="GtkBox">
-                          <property name="orientation">vertical</property>
-                          <property name="spacing">100</property>
-                          <property name="margin-top">15</property>
+                        <object class="GtkScrolledWindow">
+                          <property name="hexpand">True</property>
                           <child>
-                            <object class="AdwPreferencesGroup" id="Downloads">
-                              <property name="title">Downloading</property>
-                            </object>
-                          </child>
-                          <child>
-                            <object class="AdwPreferencesGroup" id="History">
-                              <property name="title">History</property>
+                            <object class="AdwClamp">
+                              <property name="maximum-size">1000</property>
+                              <property name="tightening-threshold">500</property>
+                              <property name="hexpand">True</property>
+                              <child>
+                                <object class="GtkBox">
+                                  <property name="hexpand">True</property>
+                                  <property name="orientation">vertical</property>
+                                  <child>
+                                    <object class="AdwStatusPage">
+                                      <property name="title">Downloads</property>
+                                    </object>
+                                  </child>
+                                  <child>
+                                    <object class="AdwPreferencesGroup" id="Downloads_List">
+                                    </object>
+                                      <!--child>
+                                        <object class="AdwPreferencesGroup" id="History_List">
+                                          <property name="title">History</property>
+                                        </object>
+                                      </child-->
+                                  </child>
+                                </object>
+                              </child>
                             </object>
                           </child>
                         </object>
                       </child>
                     </object>
-                    <!--object class="AdwStatusPage">
-                      <property name="title">TODO</property>
-                    </object-->
                   </property>
                 </object>
               </child>
