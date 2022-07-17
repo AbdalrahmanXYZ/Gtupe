@@ -153,8 +153,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
             if str(video[7]) not in list(self.Download_Rows.keys()):
                 print("Adding To Downloads List : " + video[6])
                 self.Download_Rows[str(video[7])] = DownloadsRow(video[0], video[1], video[2], video[3], video[4], video[5], video[6], video[7])
-                self.Downloads_List.add(self.Download_Rows[str(video[7])])
-
+                self.Downloads_List.prepend(self.Download_Rows[str(video[7])])
         conn.close()
 
 
@@ -456,7 +455,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
     def On_Vid_Download(self, button):
         threading.Thread(target = self.On_Vid_DownloadFunc(button), daemon = True).start()
 
-    @Gtk.Template.Callback()
+    #@Gtk.Template.Callback()
     def On_List_Download(self, button):
         threading.Thread(target = self.On_List_DownloadFunc(button), daemon = True).start()
 
@@ -496,10 +495,11 @@ class GtupeWindow(Gtk.ApplicationWindow):
 class DownloadsRow(Adw.ActionRow):
     def __init__(self, DURL, DRes , DType, DLoc, DAddedOn, DSize, DName, DID):
         super().__init__()
-        # setting The MainBox
+        # setting Some Values
+        self.add_css_class("card")
         self.URL = DURL
         self.ID = DID
-        #self.set_hexpand(True)
+        # Setting MainBox
         self.MainBox = Gtk.Box()
         self.MainBox.set_hexpand(True)
         self.MainBox.set_margin_bottom(20)
@@ -508,9 +508,9 @@ class DownloadsRow(Adw.ActionRow):
         self.MainBox.set_margin_top(20)
         # setting MainIcon Defaults
         if DType == "Video":
-            self.MainIcon = Gtk.Image.new_from_icon_name("video-x-generic-symbolic")
+            self.MainIcon = Gtk.Image.new_from_icon_name("emblem-videos-symbolic")
         else:
-            self.MainIcon = Gtk.Image.new_from_icon_name("audio-x-generic-symbolic")
+            self.MainIcon = Gtk.Image.new_from_icon_name("emblem-music-symbolic")
         self.MainIcon.set_margin_end(20)
         self.MainIcon.set_pixel_size(50)
         # setting InnerBox1
@@ -532,7 +532,7 @@ class DownloadsRow(Adw.ActionRow):
         if DType == "Video":
             self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Resouloution : " + DRes[2:-2] + "   " + DSize)
         else:
-            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Bitrate : " + DRes[2:-2] + "Kbps" + "   Size : " + DSize)
+            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Bitrate : " + DRes[2:-2] + "   Size : " + DSize)
         self.Subtitle.set_ellipsize(3)
         self.Subtitle.set_max_width_chars(25)
         self.Subtitle.set_xalign(0)

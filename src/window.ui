@@ -441,7 +441,9 @@
                                     </object>
                                   </child>
                                   <child>
-                                    <object class="AdwPreferencesGroup" id="Downloads_List">
+                                    <object class="GtkBox" id="Downloads_List">
+                                      <property name="orientation">vertical</property>
+                                      <property name="spacing">15</property>
                                     </object>
                                       <!--child>
                                         <object class="AdwPreferencesGroup" id="History_List">
