@@ -24,8 +24,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
+      <object class="AdwToastOverlay" id="MainToastOverlay">
         <child>
             <object class="AdwViewStack" id="stack">
               <child>
@@ -35,10 +34,10 @@
                   <property name="icon-name">document-save-symbolic</property>
                   <property name="child">
                     <object class="GtkBox" id="MainBox">
-                      <property name="margin-top">50</property>
+                      <!--property name="margin-top">50</property>
                       <property name="margin-bottom">50</property>
                       <property name="margin-start">40</property>
-                      <property name="margin-end">40</property>
+                      <property name="margin-end">40</property-->
                       <child>
                         <object class="AdwCarousel" id="Carousel">
                           <property name="vexpand">True</property>
@@ -49,6 +48,10 @@
                           <property name="spacing">500</property>
                           <child>
                             <object class="GtkRevealer" id="MainRevealer">
+                              <property name="margin-top">50</property>
+                              <property name="margin-bottom">50</property>
+                              <property name="margin-start">40</property>
+                              <property name="margin-end">40</property>
                               <property name="transition-type">0</property>
                               <property name="reveal-child">True</property>
                               <child>
@@ -124,6 +127,10 @@
                           </child>
                           <child>
                             <object class="GtkRevealer" id="loading_revealer">
+                              <property name="margin-top">50</property>
+                              <property name="margin-bottom">50</property>
+                              <property name="margin-start">40</property>
+                              <property name="margin-end">40</property>
                               <property name="transition-type">0</property>
                               <property name="reveal-child">False</property>
                               <child>
@@ -156,18 +163,21 @@
                                 <object class="GtkScrolledWindow" id="list_scrolled_window">
                                   <property name="hscrollbar_policy">2</property>
                                   <property name="vscrollbar_policy">1</property>
+                                  <property name="hexpand">True</property>
                                   <property name="child">
                                     <object class="AdwClamp">
-                                      <property name="maximum-size">1300</property>
-                                      <property name="tightening-threshold">300</property>
+                                      <property name="maximum-size">1000</property>
+                                      <property name="tightening-threshold">500</property>
                                       <property name="child">
                                         <object class="GtkBox">
                                           <property name="orientation">vertical</property>
                                           <property name="spacing">12</property>
                                           <property name="halign">center</property>
                                           <property name="valign">center</property>
+                                          <property name="hexpand">True</property>
                                           <child>
                                             <object class="GtkBox">
+                                              <property name="margin-top">50</property>
                                               <property name="halign">start</property>
                                               <child>
                                                 <object class="GtkButton">
@@ -216,41 +226,45 @@
                                                 </object>
                                               </child>
                                               <child>
-                                                  <object class="GtkComboBox" id="ListTypeBox">
-                                                    <signal name="changed" handler="on_list_type_change"/>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkLabel" id="ListResLabel">
-                                                    <property name="label"> Resolution : </property>
-                                                    <style>
-                                                      <class name="heading"/>
-                                                    </style>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkComboBox" id="ListResBox">
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkButton" id="ListDownloadButton">
-                                                    <property name="label">Download</property>
-                                                    <style>
-                                                      <class name="suggested-action"/>
-                                                    </style>
-                                                  </object>
-                                                </child>
-                                              </object>
-                                            </child>
-                                            <child>
-                                              <object class="AdwPreferencesGroup" id="Playlist_Content_Group">
-                                              </object>
-                                            </child>
-                                          </object>
-                                        </property>
-                                      </object>
-                                    </property>
-                                  </object>
+                                                <object class="GtkComboBox" id="ListTypeBox">
+                                                  <signal name="changed" handler="on_list_type_change"/>
+                                                </object>
+                                              </child>
+                                              <child>
+                                                <object class="GtkLabel" id="ListResLabel">
+                                                  <property name="label"> Resolution : </property>
+                                                  <property name="width-chars">13</property>
+                                                  <property name="xalign">0.5</property>
+                                                  <style>
+                                                    <class name="heading"/>
+                                                  </style>
+                                                </object>
+                                              </child>
+                                              <child>
+                                                <object class="GtkComboBox" id="ListResBox">
+                                                  <property name="width_request">100</property>
+                                                </object>
+                                              </child>
+                                              <child>
+                                                <object class="GtkButton" id="ListDownloadButton">
+                                                  <property name="label">Download</property>
+                                                  <signal name="clicked" handler="On_List_Download"/>
+                                                  <style>
+                                                    <class name="suggested-action"/>
+                                                  </style>
+                                                </object>
+                                              </child>
+                                            </object>
+                                          </child>
+                                          <child>
+                                            <object class="AdwPreferencesGroup" id="Playlist_Content_Group">
+                                            </object>
+                                          </child>
+                                        </object>
+                                      </property>
+                                    </object>
+                                  </property>
+                                </object>
                               </child>
                             </object>
                           </child>
@@ -260,13 +274,13 @@
                               <property name="reveal-child">False</property>
                               <child>
                                 <object class="GtkBox" id="mainVidView">
-                                  <property name="vexpand">True</property>
                                   <property name="orientation">vertical</property>
                                   <property name="spacing">20</property>
                                   <property name="halign">center</property>
                                   <property name="valign">center</property>
                                   <child>
                                     <object class="GtkBox">
+                                      <property name="margin-top">50</property>
                                       <property name="halign">start</property>
                                       <child>
                                         <object class="GtkButton">
@@ -314,6 +328,8 @@
                                           <child>
                                             <object class="GtkLabel" id="VidResLabel">
                                               <property name="label">Resolution : </property>
+                                              <property name="width-chars">13</property>
+                                              <property name="xalign">0.5</property>
                                               <style>
                                                 <class name="heading"/>
                                               </style>
@@ -322,6 +338,7 @@
                                           <child>
                                             <object class="GtkComboBox" id="VidResBox">
                                               <signal name="changed" handler="size_label_handler"/>
+                                              <property name="width_request">100</property>
                                               <style>
                                                 <class name="heading"/>
                                               </style>
@@ -330,6 +347,8 @@
                                           <child>
                                             <object class="GtkLabel" id="VidSizeLabel">
                                               <property name="label"></property>
+                                              <property name="width-chars">13</property>
+                                              <property name="xalign">0.5</property>
                                               <style>
                                                 <class name="heading"/>
                                               </style>
@@ -354,6 +373,10 @@
                           </child>
                           <child>
                             <object class="GtkRevealer" id="done_revealer">
+                              <property name="margin-top">50</property>
+                              <property name="margin-bottom">50</property>
+                              <property name="margin-start">40</property>
+                              <property name="margin-end">40</property>
                               <property name="transition-type">0</property>
                               <property name="reveal-child">False</property>
                               <child>
@@ -362,12 +385,32 @@
                                   <property name="title" translatable="yes">Done!</property>
                                   <property name="description" translatable="yes">Check The Task Manager</property>
                                   <property name="vexpand">True</property>
+                                  <child>
+                                    <object class="GtkBox">
+                                      <property name="halign">center</property>
+                                      <child>
+                                        <object class="GtkButton">
+                                          <property name="label">Add Another Download</property>
+                                          <property name="width_request">110</property>
+                                          <signal name="clicked" handler="On_Go_Back"/>
+                                          <style>
+                                            <class name="pill"/>
+                                            <class name="suggested-action"/>
+                                          </style>
+                                        </object>
+                                      </child>
+                                    </object>
+                                  </child>
                                 </object>
                               </child>
                             </object>
                           </child>
                           <child>
                             <object class="GtkRevealer" id="fail_revealer">
+                              <property name="margin-top">50</property>
+                              <property name="margin-bottom">50</property>
+                              <property name="margin-start">40</property>
+                              <property name="margin-end">40</property>
                               <property name="transition-type">0</property>
                               <property name="reveal-child">False</property>
                               <child>
@@ -435,9 +478,16 @@
                                 <object class="GtkBox">
                                   <property name="hexpand">True</property>
                                   <property name="orientation">vertical</property>
+                                  <property name="margin-bottom">36</property>
                                   <child>
-                                    <object class="AdwStatusPage">
-                                      <property name="title">Downloads</property>
+                                    <object class="GtkLabel">
+                                      <property name="margin-top">36</property>
+                                      <property name="margin-bottom">36</property>
+                                      <property name="label">Downloads</property>
+                                      <style>
+                                        <class name="title"/>
+                                        <class name="title-1"/>
+                                      </style>
                                     </object>
                                   </child>
                                   <child>
@@ -463,19 +513,15 @@
               </child>
             </object>
         </child>
-        <child>
-          <object class="AdwViewSwitcherBar">
-            <property name="stack">stack</property>
-            <binding name="reveal">
-              <lookup name="title-visible">title</lookup>
-            </binding>
-          </object>
-        </child>
       </object>
     </child>
   </template>
   <menu id="primary_menu">
     <section>
+      <item>
+        <attribute name="label" translatable="yes">_Download Download Path</attribute>
+        <attribute name="action">app.DefaultLocation</attribute>
+      </item>
       <item>
         <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
         <attribute name="action">win.show-help-overlay</attribute>
@@ -483,10 +529,6 @@
       <item>
         <attribute name="label" translatable="yes">_About</attribute>
         <attribute name="action">app.about</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Download Download Path</attribute>
-        <attribute name="action">app.DefaultLocation</attribute>
       </item>
     </section>
   </menu>

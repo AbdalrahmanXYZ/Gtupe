@@ -64,6 +64,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
     Error_Label = Gtk.Template.Child()
     LoadingProgressBar = Gtk.Template.Child()
     Downloads_List = Gtk.Template.Child()
+    MainToastOverlay = Gtk.Template.Child()
     VidRequest = 0
     ListRequest = 0
 
@@ -72,12 +73,13 @@ class GtupeWindow(Gtk.ApplicationWindow):
         global DefaultLocFileDir
         global DefaultLocPATH
         global cache_dir
+        self.isactivetoast = False
         cache_dir = GLib.get_user_cache_dir()
         self.MainBuffer.connect("inserted_text", self.islistq)
         self.MainBuffer.connect("deleted_text", self.islistq)
         self.Download_Rows = {}
         DefaultLocFileDir = GLib.get_user_cache_dir() + "/tmp/DefaultDownloadLoc"
-        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db', check_same_thread=False)
         db = conn.cursor()
         db.execute('''
           CREATE TABLE IF NOT EXISTS Downloads
@@ -101,6 +103,8 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
 
 
+
+
     def time_format(self, sec):
         if sec >= 60 and sec < 3600:
             result = f"{float(sec / 60):.2f}" + " min"
@@ -109,6 +113,8 @@ class GtupeWindow(Gtk.ApplicationWindow):
         else:
             result = f"{int(sec)}" + " sec"
         return result
+
+
 
     def size_format(self, size):
             tags = ["bytes", "Kb", "Mb", "Gb", "Tb"]
@@ -120,11 +126,13 @@ class GtupeWindow(Gtk.ApplicationWindow):
                     size = size / 1024
             return str(round(double_bytes, 2)) + " " + tags[i]
 
+
+
     def AddToTasksDB(self, url, res, dtype, size, name):
         cache_dir = GLib.get_user_cache_dir()
         fsize = self.size_format(size)
         dt = d.datetime.now().strftime("%d/%m/%Y %H:%M")
-        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db', check_same_thread=False)
         self.db = conn.cursor()
         self.db.execute('''
           CREATE TABLE IF NOT EXISTS Downloads
@@ -143,21 +151,25 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
 
     def UpdateDownloads(self, *args):
-        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db')
+        conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db', check_same_thread=False)
         self.db = conn.cursor()
         queue = self.db.execute("SELECT * FROM Downloads")
         for video in queue:
-            print(video)
-            print(video[7])
-            print(list(self.Download_Rows.keys()))
+            #print(video)
+            #print(video[7])
+            #print(list(self.Download_Rows.keys()))
             if str(video[7]) not in list(self.Download_Rows.keys()):
-                print("Adding To Downloads List : " + video[6])
+                print("Adding To Downloads List : " + video[6] + f"  ( {video[2]} )")
                 self.Download_Rows[str(video[7])] = DownloadsRow(video[0], video[1], video[2], video[3], video[4], video[5], video[6], video[7])
                 self.Downloads_List.prepend(self.Download_Rows[str(video[7])])
         conn.close()
 
 
+
+
     #def UpdateHistory():
+
+
 
     def Video_Data(self, *args):
         if self.connect_func() == False:
@@ -178,16 +190,16 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.SizesV = []
             self.ResV = []
             self.ResA = []
-            for stream in self.vid.streams.filter(progressive = True):
+            for stream in self.vid.streams.filter(progressive = True, type = "video"):
                 self.VidVidRes.append([f"{stream.resolution}"])
-                self.ResV.append([f"{stream.resolution}"])
+                self.ResV.append(f"{stream.resolution}")
                 self.SizesV.append(stream.filesize)
                 print(stream.resolution)
-            for stream in self.vid.streams.filter(only_audio = True):
-                self.VidAuidRes.append([f"{round(stream.bitrate/1000)}kbps"])
-                self.ResA.append([f"{round(stream.bitrate/1000)}kbps"])
+            for stream in self.vid.streams.filter(type = "audio"):
+                self.VidAuidRes.append([f"{stream.abr}"])
+                self.ResA.append(f"{stream.abr}")
                 self.SizesA.append(stream.filesize)
-                print(stream.bitrate)
+                print(stream.abr)
             self.VidTypeList.append(['Video'])
             self.VidTypeList.append(['Audio'])
             print('70%')
@@ -219,11 +231,12 @@ class GtupeWindow(Gtk.ApplicationWindow):
                 self.Fail(err)
                 return
 
+
+
     def Playlist_Data(self, *args):
         global rows
-        global check
         if self.connect_func() == False:
-                return
+            return
         try:
             self.ListRequest = 1
             #func
@@ -231,42 +244,29 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.ListAuidRes = Gtk.ListStore(str)
             self.ListTypeList = Gtk.ListStore(str)
             self.link = self.MainBuffer.get_text()
-            i = 0
             self.plist = pytube.Playlist(self.link)
             self.l = len(self.plist.videos)
             rows = [0]*self.l
-            check = [0]*self.l
             self.LResV = []
             self.LResA = []
             print("rows done")
+            i = 0
             for video in self.plist.videos:
-                # card box
-                rows[i] = Adw.ActionRow.new()
-                rows[i].set_title_lines(1)
-                rows[i].set_subtitle_lines(1)
-                check[i] = Gtk.CheckButton.new()
-                check[i].set_active(True)
-                check[i].add_css_class("selection-mode")
-                rows[i].add_prefix(check[i])
-                # desc
-                name = html.escape(video.title)
-                if len(name) > 80:
-                    name = name[:80]+"..."
-                rows[i].set_title(name)
-                rows[i].set_subtitle(f"Channel: {html.escape(video.author)} Length: " + f"{self.time_format(video.length)}" + " Views: " + f"{video.views:,}")
-                self.Playlist_Content_Group.add(rows[i])
+                #if self.connect_func() == False:
+                    #return
+                rows[i] = ListRow(self.plist.video_urls[i] , video.title, video.author, self.time_format(video.length), video.views, self.Playlist_Content_Group)
                 i += 1
                 print(i)
             self.ListNameLabel.set_label(self.plist.title)
             # setting combo boxes data
-            for stream in self.plist.videos[0].streams.filter(progressive = True):
+            for stream in self.plist.videos[0].streams.filter(progressive = True, type = "video"):
                 self.ListVidRes.append([f"{stream.resolution}"])
-                self.LResV.append([f"{stream.resolution}"])
+                self.LResV.append(f"{stream.resolution}")
                 print(stream.resolution)
-            for stream in self.plist.videos[0].streams.filter(only_audio = True):
-                self.ListAuidRes.append([f"{round(stream.bitrate/1000)}kbps"])
-                self.LResA.append([f"{round(stream.bitrate/1000)}kbps"])
-                print(stream.bitrate)
+            for stream in self.plist.videos[0].streams.filter(type = "audio"):
+                self.ListAuidRes.append([f"{stream.abr}"])
+                self.LResA.append(stream.abr)
+                print(stream.abr)
             self.ListTypeList.append(['Video'])
             self.ListTypeList.append(['Audio'])
             # cell R
@@ -296,21 +296,27 @@ class GtupeWindow(Gtk.ApplicationWindow):
                 return
 
 
+
+
     def loading_func(self):
         while self.loading == 1:
             self.LoadingProgressBar.pulse()
             time.sleep(0.25)
 
+
+
     def connect_func(self):
         try:
             host='http://google.com'
             urllib.request.urlopen(host)
-            print("One Connection Has Been Established")
+            print("Connection Has Been Established")
             return True
         except:
             print("Connection Failed")
             self.Fail("Failed Due To Connection Cut")
             return False
+
+
 
     def islistq(self, *args):
         # if a vid related to a list
@@ -341,6 +347,8 @@ class GtupeWindow(Gtk.ApplicationWindow):
             return 3
 
 
+
+
     def Fail(self, errno):
         if 'Errno -3' in str(errno):
             self.Error_Label.set_label("Error: Conection Error")
@@ -354,6 +362,132 @@ class GtupeWindow(Gtk.ApplicationWindow):
         self.done_revealer.set_reveal_child(False)
         self.fail_revealer.set_reveal_child(True)
         self.Carousel.scroll_to(self.fail_revealer, True)
+
+
+
+
+    def On_Vid_DownloadFunc(self):
+        print("???1")
+        if self.VidTypeBox.get_active() == 0:
+            VidRes = self.ResV[self.VidResBox.get_active()]
+            VidType = "Video"
+            VidSize = self.SizesV[self.VidResBox.get_active()]
+        else:
+            VidRes = self.ResA[self.VidResBox.get_active()]
+            VidType = "Audio"
+            VidSize = self.SizesA[self.VidResBox.get_active()]
+        print("???2")
+        self.AddToTasksDB(self.VidURL, VidRes, VidType, VidSize, self.VidName)
+        print("???3")
+        self.vid_revealer.set_reveal_child(False)
+        self.done_revealer.set_reveal_child(True)
+        self.Carousel.scroll_to(self.done_revealer, True)
+
+
+
+    def Toast_Handler(self, Toast):
+        if self.isactivetoast == False:
+            self.isactivetoast = True
+            self.MainToastOverlay.add_toast(Toast)
+            time.sleep(3)
+            self.isactivetoast = False
+
+    def On_List_DownloadFunc(self):
+        # Check For No Selection
+        unselected = 0
+        for row in rows:
+            if row.check.get_active() == False:
+                unselected += 1
+        NoneToast = Adw.Toast.new("Nothing Have Been Selected!")
+        NoneToast.set_timeout(3)
+        if unselected == len(rows):
+            threading.Thread(target = self.Toast_Handler, args = [NoneToast], daemon = True).start()
+            return
+        self.List_revealer.set_reveal_child(False)
+        self.loading_revealer.set_reveal_child(True)
+        self.Carousel.scroll_to(self.loading_revealer, True)
+        self.loading = 1
+        if self.connect_func() == False:
+                return
+        NoneToast.dismiss()
+        threading.Thread(target = self.loading_func, daemon = True).start()
+        print("???1")
+        if self.ListTypeBox.get_active() == 0:
+            ListRes = self.LResV[self.ListResBox.get_active()]
+            ListType = "Video"
+        else:
+            ListRes = self.LResA[self.ListResBox.get_active()]
+            ListType = "Audio"
+        print("Selected: " + str(ListRes) + " " + ListType)
+        Sizes = []
+        i = 0
+        for video in self.plist.videos:
+            print("f")
+            if rows[i].check.get_active() == True:
+                if ListType == "Video":
+                    ListRes = self.LResV[self.ListResBox.get_active()]
+                    try:
+                        for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
+                            Sizes.append(stream.filesize)
+                            print(str(stream) + str("t1"))
+                            break
+                        self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                    except IndexError:
+                        print("Failed To Get That Res Trying Another..")
+                        try:
+                            ListRes = self.LResV[self.ListResBox.get_active() + 1]
+                            for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
+                                Sizes.append(stream.filesize)
+                                print(str(stream) + str("t2"))
+                                break
+                            self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                        except IndexError:
+                            print("Failed To Get That Res Trying Another..")
+                            try:
+                                ListRes = self.LResV[self.ListResBox.get_active() - 1]
+                                for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
+                                    Sizes.append(stream.filesize)
+                                    print(str(stream) + str("t3"))
+                                    break
+                                self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                            except IndexError:
+                                print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
+                                Sizes.append("0")
+                                pass
+                else:
+                    try:
+                        ListRes = self.LResA[self.ListResBox.get_active()]
+                        for stream in video.streams.filter(type = "audio", abr = ListRes):
+                            Sizes.append(stream.filesize)
+                            break
+                        self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                    except IndexError:
+                        try:
+                            ListRes = self.LResA[self.ListResBox.get_active() + 1]
+                            for stream in video.streams.filter(type = "audio", abr = ListRes):
+                                Sizes.append(stream.filesize)
+                                break
+                            self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                        except IndexError:
+                            try :
+                                ListRes = self.LResA[self.ListResBox.get_active() - 1]
+                                for stream in video.streams.filter(type = "audio", abr = ListRes):
+                                    Sizes.append(stream.filesize)
+                                    break
+                                self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                            except IndexError:
+                                print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
+                                Sizes.append("0")
+                                pass
+            i += 1
+        print("???3")
+        self.loading = 0
+        self.List_revealer.set_reveal_child(True)
+        self.loading_revealer.set_reveal_child(False)
+        self.done_revealer.set_reveal_child(True)
+        self.Carousel.scroll_to(self.done_revealer, True)
+
+
 
 
     @Gtk.Template.Callback()
@@ -424,20 +558,8 @@ class GtupeWindow(Gtk.ApplicationWindow):
             self.ListResBox.clear()
             self.ListTypeBox.clear()
             for i in range(len(rows)):
-                try:
-                    rows[i].remove(check[i])
-                    check[i].run_dispose()
-                except Exception as e:
-                    print(str(e))
-                    pass
-                try:
-                    self.Playlist_Content_Group.remove(rows[i])
-                    rows[i].run_dispose()
-                except Exception as e:
-                    print(str(e))
-                    pass
+                rows[i].destroy_row(self.Playlist_Content_Group)
             self.ListRequest = 0
-
         self.VidSizeLabel.set_label("")
         self.MainEntry.set_text("")
         loading = 0
@@ -453,44 +575,48 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
     @Gtk.Template.Callback()
     def On_Vid_Download(self, button):
-        threading.Thread(target = self.On_Vid_DownloadFunc(button), daemon = True).start()
+        threading.Thread(target = self.On_Vid_DownloadFunc, daemon = True).start()
 
-    #@Gtk.Template.Callback()
+    @Gtk.Template.Callback()
     def On_List_Download(self, button):
-        threading.Thread(target = self.On_List_DownloadFunc(button), daemon = True).start()
+        threading.Thread(target = self.On_List_DownloadFunc, daemon = True).start()
 
 
-    def On_Vid_DownloadFunc(self, button):
-        print("???1")
-        if self.VidTypeBox.get_active() == 0:
-            VidRes = self.ResV[self.VidResBox.get_active()]
-            VidType = "Video"
-            VidSize = self.SizesV[self.VidResBox.get_active()]
-        else:
-            VidRes = self.ResA[self.VidResBox.get_active()]
-            VidType = "Audio"
-            VidSize = self.SizesA[self.VidResBox.get_active()]
-        print("???2")
-        self.AddToTasksDB(self.VidURL, VidRes, VidType, VidSize, self.VidName)
-        print("???3")
+class ListRow(Adw.ActionRow):
+    def __init__(self, url , title, author, lengthf, views, Playlist_Content_Group):
+        super().__init__()
+        self.URL = url
+        self.Title = title
+        self.Author = author
+        self.set_title_lines(1)
+        self.set_subtitle_lines(1)
+        self.check = Gtk.CheckButton()
+        self.check.set_active(True)
+        self.check.add_css_class("selection-mode")
+        self.add_prefix(self.check)
+        name = html.escape(title)
+        if len(name) > 80:
+            name = name[:80]+"..."
+        self.set_title(name)
+        self.set_subtitle(f"Channel: {html.escape(author)} Length: " + lengthf + " Views: " + f"{views:,}")
+        Playlist_Content_Group.add(self)
 
-    # TODO: Make List Download Func which should itirate over every row to check wheather its
-    #       selected then colecting requered data to call AddToTasks
-    def On_List_DownloadFunc(self, button):
-        print("???1")
-        if self.ListTypeBox.get_active() == 0:
-            ListRes = self.ResV[self.ListResBox.get_active()]
-            ListType = "Video"
-            ListSize = self.SizesV[self.ListResBox.get_active()]
-        else:
-            ListRes = self.ResA[self.ListResBox.get_active()]
-            ListType = "Audio"
-            ListSize = self.SizesA[self.ListResBox.get_active()]
-        print("???2")
-        self.AddToTasksDB(self.ListURL, ListRes, ListType, ListSize, self.ListName)
-        print("???3")
-
-
+    def destroy_row(self, Playlist_Content_Group):
+        try:
+            self.remove(self.check)
+            self.check.run_dispose()
+        except Exception as e:
+            print(str(e))
+            pass
+        try:
+            Playlist_Content_Group.remove(self)
+            self.run_dispose()
+        except Exception as e:
+            print(str(e))
+            pass
+        self.URL = None
+        self.Title = None
+        self.Author = None
 
 class DownloadsRow(Adw.ActionRow):
     def __init__(self, DURL, DRes , DType, DLoc, DAddedOn, DSize, DName, DID):
@@ -530,9 +656,9 @@ class DownloadsRow(Adw.ActionRow):
         self.Title.add_css_class("heading")
         # setting Subtitle
         if DType == "Video":
-            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Resouloution : " + DRes[2:-2] + "   " + DSize)
+            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Resouloution : " + DRes + "   Size : " + DSize)
         else:
-            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Bitrate : " + DRes[2:-2] + "   Size : " + DSize)
+            self.Subtitle = Gtk.Label.new("Added On : " + DAddedOn + "   Bitrate : " + DRes + "   Size : " + DSize)
         self.Subtitle.set_ellipsize(3)
         self.Subtitle.set_max_width_chars(25)
         self.Subtitle.set_xalign(0)
@@ -619,30 +745,30 @@ class GtupeApplication(Adw.Application):
             self.DefaultLocEntry.set_placeholder_text(DefaultLocPATH[:52]+"...")
         else:
             self.DefaultLocEntry.set_placeholder_text(DefaultLocPATH)
-        self.DefaultLocButtonBox = Gtk.Box.new(0, 10)
+        self.DefaultLocButtonBox = Gtk.Box.new(0, 40)
         self.DefaultCancel = Gtk.Button.new_with_label("Cancel")
         self.DefaultCancel.connect("clicked", self.on_DefaultLoc_Cancel)
-        self.DefaultCancel.add_css_class("destructive-action")
-        self.DefaultSave = Gtk.Button.new_with_label("Save")
+        self.DefaultCancel.set_css_classes(["destructive-action", "pill"])
+        self.DefaultSave = Gtk.Button.new_with_label("  Save  ")
         self.DefaultSave.connect("clicked", self.on_DefaultLoc_Save)
-        self.DefaultSave.add_css_class("suggested-action")
+        self.DefaultSave.set_css_classes(["suggested-action","pill"])
         self.DefaultLocButtonBox.append(self.DefaultCancel)
         self.DefaultLocButtonBox.append(self.DefaultSave)
         self.DefaultLocButtonBox.set_halign(3)
         self.DefaultLocation.props.message_area.set_margin_top(20)
         self.DefaultLocation.props.message_area.set_margin_bottom(20)
         self.DefaultLocation.props.message_area.set_spacing(20)
-        self.DefaultLocation.props.message_area.append(self.DefaultLocEntry)
-        self.DefaultLocation.props.message_area.append(self.DefaultLocButtonBox)
         self.DefaultLocation.props.modal = True
         self.DefaultLocation.set_transient_for(self.props.active_window)
-        self.Invalid_Path_Label = Gtk.Label.new("Invalid Directory :/")
+        self.Invalid_Path_Label = Gtk.Label.new("Invalid Directory!")
         self.Invalid_Path_Label.add_css_class("heading")
         self.Invalid_Path_Revealer = Gtk.Revealer()
         self.Invalid_Path_Revealer.set_transition_duration(150)
         self.Invalid_Path_Revealer.set_transition_type(5)
         self.Invalid_Path_Revealer.set_child(self.Invalid_Path_Label)
+        self.DefaultLocation.props.message_area.append(self.DefaultLocEntry)
         self.DefaultLocation.props.message_area.append(self.Invalid_Path_Revealer)
+        self.DefaultLocation.props.message_area.append(self.DefaultLocButtonBox)
         self.DefaultLocation.present()
 
     def on_DefaultLoc_Cancel(self, *args):
