@@ -456,7 +456,7 @@
                 </object>
               </child>
               <child>
-                <object class="AdwViewStackPage">
+                <object class="AdwViewStackPage" id="TaskManagerPage">
                   <property name="name">task_manager</property>
                   <property name="title">Task Manager</property>
                   <property name="icon-name">edit-paste-symbolic</property>

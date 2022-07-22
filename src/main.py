@@ -65,6 +65,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
     LoadingProgressBar = Gtk.Template.Child()
     Downloads_List = Gtk.Template.Child()
     MainToastOverlay = Gtk.Template.Child()
+    TaskManagerPage = Gtk.Template.Child()
     VidRequest = 0
     ListRequest = 0
 
@@ -146,9 +147,6 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
 
 
-    #def Download_handler(self, IsPaused, IsCanceled, PBar, Url, Res, Type, Loc):
-
-
 
     def UpdateDownloads(self, *args):
         conn = sqlite3.connect(cache_dir + '/tmp/GtupeData.db', check_same_thread=False)
@@ -162,6 +160,7 @@ class GtupeWindow(Gtk.ApplicationWindow):
                 print("Adding To Downloads List : " + video[6] + f"  ( {video[2]} )")
                 self.Download_Rows[str(video[7])] = DownloadsRow(video[0], video[1], video[2], video[3], video[4], video[5], video[6], video[7])
                 self.Downloads_List.prepend(self.Download_Rows[str(video[7])])
+                self.TaskManagerPage.set_needs_attention(True)
         conn.close()
 
 
@@ -686,8 +685,25 @@ class DownloadsRow(Adw.ActionRow):
         self.InnerBox3.append(self.Subtitle)
         self.set_child(self.MainBox)
 
-    def AddHandler(self, *args):
+
+    def Download_Handler(self, *args):
         return
+
+    def Pause(self, *args):
+        return
+
+    def Fail(self, *args):
+        return
+
+    def Cancel(self, *args):
+        return
+
+    def Done(self, *args):
+        return
+
+    def Destroy(self, *args):
+        return
+
 
 
 
