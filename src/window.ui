@@ -519,7 +519,7 @@
   <menu id="primary_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">_Download Download Path</attribute>
+        <attribute name="label" translatable="yes">_Change Download Path</attribute>
         <attribute name="action">app.DefaultLocation</attribute>
       </item>
       <item>
