@@ -364,26 +364,6 @@ class GtupeWindow(Gtk.ApplicationWindow):
 
 
 
-
-    def On_Vid_DownloadFunc(self):
-        print("???1")
-        if self.VidTypeBox.get_active() == 0:
-            VidRes = self.ResV[self.VidResBox.get_active()]
-            VidType = "Video"
-            VidSize = self.SizesV[self.VidResBox.get_active()]
-        else:
-            VidRes = self.ResA[self.VidResBox.get_active()]
-            VidType = "Audio"
-            VidSize = self.SizesA[self.VidResBox.get_active()]
-        print("???2")
-        self.AddToTasksDB(self.VidURL, VidRes, VidType, VidSize, self.VidName)
-        print("???3")
-        self.vid_revealer.set_reveal_child(False)
-        self.done_revealer.set_reveal_child(True)
-        self.Carousel.scroll_to(self.done_revealer, True)
-
-
-
     def Toast_Handler(self, Toast):
         if self.isactivetoast == False:
             self.isactivetoast = True
@@ -391,100 +371,133 @@ class GtupeWindow(Gtk.ApplicationWindow):
             time.sleep(3)
             self.isactivetoast = False
 
+
+
+    def On_Vid_DownloadFunc(self):
+        try:
+            print("???1")
+            if self.VidTypeBox.get_active() == 0:
+                VidRes = self.ResV[self.VidResBox.get_active()]
+                VidType = "Video"
+                VidSize = self.SizesV[self.VidResBox.get_active()]
+            else:
+                VidRes = self.ResA[self.VidResBox.get_active()]
+                VidType = "Audio"
+                VidSize = self.SizesA[self.VidResBox.get_active()]
+            print("???2")
+            self.AddToTasksDB(self.VidURL, VidRes, VidType, VidSize, self.VidName)
+            print("???3")
+            self.vid_revealer.set_reveal_child(False)
+            self.done_revealer.set_reveal_child(True)
+            self.Carousel.scroll_to(self.done_revealer, True)
+        except Exception as err:
+            if err:
+                self.loading = 0
+                self.Fail(err)
+                return
+
+
+
     def On_List_DownloadFunc(self):
         # Check For No Selection
-        unselected = 0
-        for row in rows:
-            if row.check.get_active() == False:
-                unselected += 1
-        NoneToast = Adw.Toast.new("Nothing Have Been Selected!")
-        NoneToast.set_timeout(3)
-        if unselected == len(rows):
-            threading.Thread(target = self.Toast_Handler, args = [NoneToast], daemon = True).start()
-            return
-        self.List_revealer.set_reveal_child(False)
-        self.loading_revealer.set_reveal_child(True)
-        self.Carousel.scroll_to(self.loading_revealer, True)
-        self.loading = 1
-        if self.connect_func() == False:
+        try:
+            unselected = 0
+            for row in rows:
+                if row.check.get_active() == False:
+                    unselected += 1
+            NoneToast = Adw.Toast.new("Nothing Have Been Selected!")
+            NoneToast.set_timeout(3)
+            if unselected == len(rows):
+                threading.Thread(target = self.Toast_Handler, args = [NoneToast], daemon = True).start()
                 return
-        NoneToast.dismiss()
-        threading.Thread(target = self.loading_func, daemon = True).start()
-        print("???1")
-        if self.ListTypeBox.get_active() == 0:
-            ListRes = self.LResV[self.ListResBox.get_active()]
-            ListType = "Video"
-        else:
-            ListRes = self.LResA[self.ListResBox.get_active()]
-            ListType = "Audio"
-        print("Selected: " + str(ListRes) + " " + ListType)
-        Sizes = []
-        i = 0
-        for video in self.plist.videos:
-            print("f")
-            if rows[i].check.get_active() == True:
-                if ListType == "Video":
-                    ListRes = self.LResV[self.ListResBox.get_active()]
-                    try:
-                        for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
-                            Sizes.append(stream.filesize)
-                            print(str(stream) + str("t1"))
-                            break
-                        self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
-                    except IndexError:
-                        print("Failed To Get That Res Trying Another..")
+            self.List_revealer.set_reveal_child(False)
+            self.loading_revealer.set_reveal_child(True)
+            self.Carousel.scroll_to(self.loading_revealer, True)
+            self.loading = 1
+            if self.connect_func() == False:
+                    return
+            NoneToast.dismiss()
+            threading.Thread(target = self.loading_func, daemon = True).start()
+            print("???1")
+            if self.ListTypeBox.get_active() == 0:
+                ListRes = self.LResV[self.ListResBox.get_active()]
+                ListType = "Video"
+            else:
+                ListRes = self.LResA[self.ListResBox.get_active()]
+                ListType = "Audio"
+            print("Selected: " + str(ListRes) + " " + ListType)
+            Sizes = []
+            i = 0
+            for video in self.plist.videos:
+                print("f")
+                if rows[i].check.get_active() == True:
+                    if ListType == "Video":
+                        ListRes = self.LResV[self.ListResBox.get_active()]
                         try:
-                            ListRes = self.LResV[self.ListResBox.get_active() + 1]
                             for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
                                 Sizes.append(stream.filesize)
-                                print(str(stream) + str("t2"))
+                                print(str(stream) + str("t1"))
                                 break
                             self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
                         except IndexError:
                             print("Failed To Get That Res Trying Another..")
                             try:
-                                ListRes = self.LResV[self.ListResBox.get_active() - 1]
+                                ListRes = self.LResV[self.ListResBox.get_active() + 1]
                                 for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
                                     Sizes.append(stream.filesize)
-                                    print(str(stream) + str("t3"))
+                                    print(str(stream) + str("t2"))
                                     break
                                 self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
                             except IndexError:
-                                print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
-                                Sizes.append("0")
-                                pass
-                else:
-                    try:
-                        ListRes = self.LResA[self.ListResBox.get_active()]
-                        for stream in video.streams.filter(type = "audio", abr = ListRes):
-                            Sizes.append(stream.filesize)
-                            break
-                        self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
-                    except IndexError:
+                                print("Failed To Get That Res Trying Another..")
+                                try:
+                                    ListRes = self.LResV[self.ListResBox.get_active() - 1]
+                                    for stream in video.streams.filter(progressive = True, res = ListRes, type = "video"):
+                                        Sizes.append(stream.filesize)
+                                        print(str(stream) + str("t3"))
+                                        break
+                                    self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                                except IndexError:
+                                    print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
+                                    Sizes.append("0")
+                                    pass
+                    else:
                         try:
-                            ListRes = self.LResA[self.ListResBox.get_active() + 1]
+                            ListRes = self.LResA[self.ListResBox.get_active()]
                             for stream in video.streams.filter(type = "audio", abr = ListRes):
                                 Sizes.append(stream.filesize)
                                 break
                             self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
                         except IndexError:
-                            try :
-                                ListRes = self.LResA[self.ListResBox.get_active() - 1]
+                            try:
+                                ListRes = self.LResA[self.ListResBox.get_active() + 1]
                                 for stream in video.streams.filter(type = "audio", abr = ListRes):
                                     Sizes.append(stream.filesize)
                                     break
                                 self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
                             except IndexError:
-                                print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
-                                Sizes.append("0")
-                                pass
-            i += 1
-        print("???3")
-        self.loading = 0
-        self.List_revealer.set_reveal_child(True)
-        self.loading_revealer.set_reveal_child(False)
-        self.done_revealer.set_reveal_child(True)
-        self.Carousel.scroll_to(self.done_revealer, True)
+                                try :
+                                    ListRes = self.LResA[self.ListResBox.get_active() - 1]
+                                    for stream in video.streams.filter(type = "audio", abr = ListRes):
+                                        Sizes.append(stream.filesize)
+                                        break
+                                    self.AddToTasksDB(rows[i].URL, ListRes, ListType, Sizes[i], rows[i].Title)
+                                except IndexError:
+                                    print("Passing: " + rows[i].Title + "  (Cant Find Even Near-Specified Res)")
+                                    Sizes.append("0")
+                                    pass
+                i += 1
+            print("???3")
+            self.loading = 0
+            self.List_revealer.set_reveal_child(True)
+            self.loading_revealer.set_reveal_child(False)
+            self.done_revealer.set_reveal_child(True)
+            self.Carousel.scroll_to(self.done_revealer, True)
+        except Exception as err:
+            if err:
+                self.loading = 0
+                self.Fail(err)
+                return
 
 
 
