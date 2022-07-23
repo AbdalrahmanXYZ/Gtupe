@@ -1,0 +1,21 @@
+Build started at 2022-06-24T20:47:54.182808
+Main binary: /usr/bin/python3
+Build Options: -Dprefix=/app
+Python system: Linux
+The Meson build system
+Version: 0.59.4
+Source dir: /home/abdalrahmanazab/Projects/Gtupe
+Build dir: /home/abdalrahmanazab/Projects/Gtupe/_build
+Build type: native build
+Project name: gtupe
+Project version: 0.1.0
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Target machine cpu family: x86_64
+Target machine cpu: x86_64
+Message: Looking for dependencies
+Program python3 (pytube) found: NO
+
+../meson.build:20:0: ERROR: python3 is missing modules: pytube

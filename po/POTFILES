@@ -1,0 +1,7 @@
+data/com.github.azab.mushroom.desktop.in
+data/com.github.azab.mushroom.appdata.xml.in
+data/com.github.azab.mushroom.gschema.xml
+src/window.ui
+src/main.py
+
+
