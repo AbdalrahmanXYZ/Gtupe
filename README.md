@@ -6,6 +6,6 @@ an Elegant [Pytube](https://github.com/pytube/pytube) Front End Built in [GTK4](
 <br><br>
 
 ## Still Under Development
-<img src="https://raw.githubusercontent.com/AbdalrahmanXYZ/Mushroom/main/Screenshots/01.png" align="center">
+<img src="https://raw.githubusercontent.com/AbdalrahmanXYZ/Mushroom/main/Screenshots/001.png" align="center">
 <br><br><br><br>
 
