@@ -4,7 +4,7 @@
   <requires lib="libadwaita" version="1.0"/>
   <requires lib="pango" version="1.0"/>
   <template class="MushroomWindow" parent="GtkApplicationWindow">
-    <property name="default-width">750</property>
+    <property name="default-width">800</property>
     <property name="default-height">650</property>
     <child type="titlebar">
       <object class="AdwHeaderBar">
@@ -76,7 +76,7 @@
                                       <child>
                                         <object class="GtkLabel">
                                           <property name="margin-top">10</property>
-                                          <property name="label" translatable="yes">Mushroom Youtupe Downloader</property>
+                                          <property name="label" translatable="yes">Mushroom</property>
                                           <style>
                                             <class name="title-1"/>
                                           </style>
@@ -85,20 +85,26 @@
                                       <child>
                                         <object class="GtkLabel">
                                           <property name="margin-bottom">10</property>
-                                          <property name="label" translatable="yes">Start By Pasting A Youtupe Video/Playlist Link To Download</property>
+                                          <property name="label" translatable="yes">Downloader For Youtube Videos/Playlists, Enter a URL To Start</property>
                                           <style>
                                             <class name="dim-label"/>
                                           </style>
                                         </object>
                                       </child>
                                       <child>
-                                        <object class="GtkEntry" id="MainEntry">
-                                          <property name="placeholder-text"> Link</property>
-                                          <property name="primary-icon-name">edit-paste-symbolic</property>
-                                          <property name="buffer">
-                                            <object class="GtkEntryBuffer" id="MainBuffer">
+                                        <object class="GtkBox">
+                                          <property name="halign">center</property>
+                                          <child>
+                                            <object class="GtkEntry" id="MainEntry">
+                                              <property name="width-request">400</property>
+                                              <property name="placeholder-text"> Link</property>
+                                              <property name="primary-icon-name">edit-paste-symbolic</property>
+                                              <property name="buffer">
+                                                <object class="GtkEntryBuffer" id="MainBuffer">
+                                                </object>
+                                              </property>
                                             </object>
-                                          </property>
+                                          </child>
                                         </object>
                                       </child>
                                       <child>
@@ -108,10 +114,10 @@
                                           <property name="reveal-child">false</property>
                                           <child>
                                             <object class="GtkBox" id="SuggestionBox">
-                                              <property name="halign">start</property>
+                                              <property name="halign">center</property>
                                               <child>
                                                 <object class="GtkCheckButton" id="SuggestionCheck">
-                                                  <property name="label">Download The Entire Playlist</property>
+                                                  <property name="label"> Download The Entire Playlist</property>
                                                   <property name="active">False</property>
                                                 </object>
                                               </child>
@@ -120,14 +126,20 @@
                                         </object>
                                       </child>
                                       <child>
-                                        <object class="GtkButton" id="SubmitButton">
-                                          <property name="label">Download Video</property>
-                                          <property name="sensitive">False</property>
-                                          <signal name="clicked" handler="Submit_Func"/>
-                                          <style>
-                                            <class name="Accept-Button"/>
-                                            <class name="pill"/>
-                                          </style>
+                                        <object class="GtkBox">
+                                          <property name="halign">center</property>
+                                          <child>
+                                             <object class="GtkButton" id="SubmitButton">
+                                              <property name="label">Download Video</property>
+                                              <property name="sensitive">False</property>
+                                              <property name="width-request">200</property>
+                                              <signal name="clicked" handler="Submit_Func"/>
+                                              <style>
+                                                <class name="Accept-Button"/>
+                                                <class name="pill"/>
+                                              </style>
+                                            </object>
+                                          </child>
                                         </object>
                                       </child>
                                     </object>
@@ -148,7 +160,7 @@
                                 <object class="AdwStatusPage" id="LoadingAdwPage">
                                   <property name="icon-name">mail-send-receive-symbolic</property>
                                   <property name="title" translatable="yes">Loading</property>
-                                  <property name="description" translatable="yes">Getting The Necessary Data To Complete Your Application</property>
+                                  <property name="description" translatable="yes">Getting The Necessary Data To Complete Your Request</property>
                                   <property name="vexpand">True</property>
                                   <property name="width-request">500</property>
                                   <child>
@@ -555,4 +567,3 @@
     </section>
   </menu>
 </interface>
-

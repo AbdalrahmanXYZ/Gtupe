@@ -778,6 +778,7 @@ class MushroomApplication(Adw.Application):
         self.DefaultLocation.props.secondary_text = "Enter A Default Folder Path To Be Used In The Future Downloads"
         # Setting Dialog Widgets
         self.DefaultLocEntry = Gtk.Entry()
+        self.DefaultLocEntry.set_margin_top(15)
         DefaultLocPATH = self.Update_Download_Path()
         if len(DefaultLocPATH) > 52:
             self.DefaultLocEntry.set_placeholder_text(DefaultLocPATH[:52]+"...")
@@ -856,4 +857,3 @@ def main(version):
     """The application's entry point."""
     app = MushroomApplication()
     return app.run(sys.argv)
-
