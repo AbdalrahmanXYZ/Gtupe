@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=gtupe
-Exec=gtupe
-Icon=com.github.azab.gtupe
-Terminal=false
-Type=Application
-Categories=GTK;
-StartupNotify=true
