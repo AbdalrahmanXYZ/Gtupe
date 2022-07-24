@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=mushroom
-Exec=mushroom
+Name=Mushroom
+Exec=Mushroom
 Icon=com.github.azab.mushroom
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=utilities;
 StartupNotify=true

@@ -63,7 +63,7 @@
                                   <property name="vexpand">True</property>
                                   <child>
                                     <object class="GtkImage" id="Mushroomsvg">
-                                      <property name="file">/home/abdalrahmanazab/Projects/Mushroom/data/img/Mushroom.svg</property>
+                                      <property name="file">/com/github/azab/mushroom/img/Mushroom.svg</property>
                                       <property name="pixel-size">200</property>
                                     </object>
                                   </child>
