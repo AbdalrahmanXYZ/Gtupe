@@ -1,4 +1,4 @@
-application_id = 'com.github.azab.mushroom'
+application_id = 'com.github.AbdalrahmanXYZ.mushroom'
 
 scalable_dir = join_paths('hicolor', 'scalable', 'apps')
 install_data(

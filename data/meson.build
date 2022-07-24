@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-  input: 'com.github.azab.mushroom.desktop.in',
-  output: 'com.github.azab.mushroom.desktop',
+  input: 'com.github.AbdalrahmanXYZ.mushroom.desktop.in',
+  output: 'com.github.AbdalrahmanXYZ.mushroom.desktop',
   type: 'desktop',
   po_dir: '../po',
   install: true,
@@ -15,8 +15,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-  input: 'com.github.azab.mushroom.appdata.xml.in',
-  output: 'com.github.azab.mushroom.appdata.xml',
+  input: 'com.github.AbdalrahmanXYZ.mushroom.appdata.xml.in',
+  output: 'com.github.AbdalrahmanXYZ.mushroom.appdata.xml',
   po_dir: '../po',
   install: true,
   install_dir: join_paths(get_option('datadir'), 'appdata')
@@ -29,7 +29,7 @@ if appstream_util.found()
   )
 endif
 
-install_data('com.github.azab.mushroom.gschema.xml',
+install_data('com.github.AbdalrahmanXYZ.mushroom.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
 )
 
