@@ -728,7 +728,7 @@ class AboutDialog(Gtk.AboutDialog):
         self.props.version = "0.1.0"
         self.props.authors = ['Abdalrahman Azab']
         self.props.copyright = '2022 Abdalrahman Azab'
-        self.props.logo_icon_name = 'com.github.AbdalrahmanXYZ.mushroom'
+        self.props.logo_icon_name = 'com.github.azab.mushroom'
         self.props.modal = True
         self.set_transient_for(parent)
 
@@ -738,7 +738,7 @@ class MushroomApplication(Adw.Application):
     """The main application singleton class."""
 
     def __init__(self):
-        super().__init__(application_id='com.github.AbdalrahmanXYZ.mushroom',
+        super().__init__(application_id='com.github.azab.mushroom',
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.create_action('quit', self.quit, ['<primary>q'])
         self.create_action('about', self.on_about_action)

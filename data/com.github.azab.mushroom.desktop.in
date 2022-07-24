@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=mushroom
 Exec=mushroom
-Icon=com.github.AbdalrahmanXYZ.mushroom
+Icon=com.github.azab.mushroom
 Terminal=false
 Type=Application
 Categories=GTK;
